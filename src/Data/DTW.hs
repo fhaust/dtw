@@ -2,11 +2,12 @@
 
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Data.DTW (dtwNaive, dtwMemo, fastDtw, Result(..), Path, Index) where
 
 
-import           Data.Sequence (Seq, ViewL (..), ViewR (..), (<|), (|>))
+import           Data.Sequence (Seq, ViewL (..), (<|))
 import qualified Data.Sequence as S
 
 import qualified Data.Set as Set
@@ -15,6 +16,25 @@ import qualified Data.List as L
 import           Data.MemoTrie
 import           Data.Function
 
+
+
+-- | a generic dataset is basically just an indexing function
+-- | and an indicator of the dataset size
+class DataSet dataset  where
+    type Item dataset :: *
+    ix  :: dataset -> Int -> Item dataset
+    len :: dataset -> Int
+
+-- some DataSet orphan instances
+instance DataSet (S.Seq a) where
+    type Item (S.Seq a) = a
+    ix  = S.index
+    len = S.length
+
+instance DataSet [a] where
+    type Item [a] = a
+    ix  = (!!)
+    len = length
 
 -- common types
 
@@ -30,15 +50,16 @@ data Result a = Result { cost :: a, path :: Path }
 -- this should not be used and is just used as a reference for the other
 -- implementations
 
-dtwNaive :: (Ord c, Fractional c) => (a -> b -> c) -> S.Seq a -> S.Seq b -> c
-dtwNaive _ as bs | S.length as <= 1 && S.length bs <= 1 = 0
-dtwNaive _ as bs | S.length as <= 1 || S.length bs <= 1 = 1/0
-dtwNaive δ (S.viewr -> as :> a) (S.viewr -> bs :> b) = δ a b + minimum [ dtwNaive δ (as |> a) bs
-                                                                       , dtwNaive δ as (bs |> b)
-                                                                       , dtwNaive δ as bs
-                                                                       ]
-dtwNaive _ _ _ = 1/0
-
+dtwNaive :: (Ord c, Fractional c, DataSet a, DataSet b)
+         => (Item a -> Item b -> c) -> a -> b -> c
+dtwNaive δ as bs = go (len as - 1) (len bs - 1)
+    where go 0 0 = 0
+          go _ 0 = 1/0
+          go 0 _ = 1/0
+          go x y = δ (ix as x) (ix bs y) + minimum [ go (x-1)  y
+                                                   , go  x    (y-1)
+                                                   , go (x-1) (y-1)
+                                                   ]
 
 -------------------------------------------------------------------------------------
 
