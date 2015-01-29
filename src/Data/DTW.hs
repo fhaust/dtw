@@ -65,19 +65,25 @@ dtwNaive δ as bs = go (len as - 1) (len bs - 1)
 
 -- | this is the "standard" implementation of dynamic time warping
 -- O(N^2) is achieved by memoization of previous results
-dtwMemo :: (Ord c, Fractional c) => (a -> b -> c) -> S.Seq a -> S.Seq b -> Result c
+dtwMemo :: (Ord c, Fractional c, DataSet a, DataSet b)
+        => (Item a -> Item b -> c) -> a -> b -> Result c
 dtwMemo δ = dtwMemoWindowed δ (\_ _ -> True)
 
 {-# INLINABLE dtwMemo #-}
 
 -- | "standard" implementation of dynamic time warping with an additional
 -- parameter that can be used to define a search window
-dtwMemoWindowed :: (Ord c, Fractional c) => (a -> b -> c) -> (Int -> Int -> Bool) -> S.Seq a -> S.Seq b -> Result c
-dtwMemoWindowed δ inWindow as bs = go (S.length as - 1) (S.length bs - 1)
-    where -- wrap go' in a memoziation function so that each value 
+dtwMemoWindowed :: (Ord c, Fractional c, DataSet a, DataSet b)
+                => (Item a -> Item b -> c)
+                -> (Int -> Int -> Bool)
+                -> a
+                -> b
+                -> Result c
+dtwMemoWindowed δ inWindow as bs = go (len as - 1) (len bs - 1)
+    where -- wrap go' in a memoziation function so that each value
           -- is calculated only once
           go = memo2 go'
-          -- handle special cases, origin cost is zero, 
+          -- handle special cases, origin cost is zero,
           -- border cost is infinity
           go' 0 0                      = Result 0 [(0,0)]
           go' 0 y                      = Result (1/0) [(0,y)]
@@ -87,9 +93,11 @@ dtwMemoWindowed δ inWindow as bs = go (S.length as - 1) (S.length bs - 1)
           -- else calculate this value, note that this calls the
           -- memoized version of go recursivly
           go' x y                      = Result newCost newPath
-            where minResult = L.minimumBy (compare `on` cost) [ go (x-1) y, go x (y-1), go (x-1) (y-1) ]
+            where minResult = L.minimumBy (compare `on` cost) [ go (x-1)  y
+                                                              , go  x    (y-1)
+                                                              , go (x-1) (y-1) ]
                   newPath   = (x,y) : path minResult
-                  newCost   = δ (S.index as x) (S.index bs y) + cost minResult
+                  newCost   = δ (ix as x) (ix bs y) + cost minResult
 
 {-# INLINABLE dtwMemoWindowed #-}
 
