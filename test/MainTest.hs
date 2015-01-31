@@ -1,5 +1,5 @@
 
-
+{-# LANGUAGE ViewPatterns #-}
 
 module Main where
 
@@ -13,6 +13,7 @@ import Test.Framework.Providers.QuickCheck2
 
 import Test.QuickCheck
 
+import           Data.Sequence (Seq(..), ViewL(..), (<|))
 import qualified Data.Sequence as S
 
 import Data.Functor
@@ -30,21 +31,29 @@ newtype MediumNonEmptySeq a = MediumNonEmptySeq { getMediumNonEmpty :: [a] }
 instance Arbitrary a => Arbitrary (MediumNonEmptySeq a) where
     arbitrary = MediumNonEmptySeq <$> listOf arbitrary `suchThat` (\l -> length l > 100 && length l < 1000)
 
-sqDist :: Double -> Double -> Double
-sqDist x y = abs (x-y)
+
+dist :: Double -> Double -> Double
+dist x y = abs (x-y)
+
+-- | reduce a dataset to half its size by averaging neighbour values
+-- together
+reduceByHalf :: Fractional a => Seq a -> Seq a
+reduceByHalf (S.viewl -> x :< (S.viewl -> y :< xs))  = (x + y) / 2 <| reduceByHalf xs
+reduceByHalf (S.viewl -> x :< (S.viewl -> S.EmptyL)) = S.singleton x
+reduceByHalf _                                       = S.empty
 
 {-testDTWVSDTWNaive :: (SmallNonEmptySeq Double, SmallNonEmptySeq Double) -> Bool-}
-{-testDTWVSDTWNaive (la,lb) = abs (dtwNaive sqDist sa sb - dtw sqDist sa sb) < 0.01-}
+{-testDTWVSDTWNaive (la,lb) = abs (dtwNaive dist sa sb - dtw dist sa sb) < 0.01-}
 {-  where sa = S.fromList $ getSmallNonEmpty la-}
 {-        sb = S.fromList $ getSmallNonEmpty lb-}
 
 testDTWMemoVSDTWNaive :: (SmallNonEmptySeq Double, SmallNonEmptySeq Double) -> Bool
-testDTWMemoVSDTWNaive (la,lb) = abs (dtwNaive sqDist sa sb - cost (dtwMemo sqDist sa sb)) < 0.01
+testDTWMemoVSDTWNaive (la,lb) = abs (dtwNaive dist sa sb - cost (dtwMemo dist sa sb)) < 0.01
   where sa = S.fromList $ getSmallNonEmpty la
         sb = S.fromList $ getSmallNonEmpty lb
 
 testFastDTWvsDTWNaive :: (SmallNonEmptySeq Double, SmallNonEmptySeq Double) -> Bool
-testFastDTWvsDTWNaive (la,lb) = abs (dtwNaive sqDist sa sb - cost (fastDtw sqDist 2 sa sb)) < 0.01
+testFastDTWvsDTWNaive (la,lb) = abs (dtwNaive dist sa sb - cost (fastDtw dist reduceByHalf 2 sa sb)) < 0.01
   where sa = S.fromList $ getSmallNonEmpty la
         sb = S.fromList $ getSmallNonEmpty lb
 
@@ -54,8 +63,8 @@ testFastDTWvsDTWNaive (la,lb) = abs (dtwNaive sqDist sa sb - cost (fastDtw sqDis
 {-testFastDTWvsDTWMemo (la,lb) = abs (1 - ((costA / matSize) / (costB / matSize))) < 0.1-}
 {-  where sa = S.fromList $ getMediumNonEmpty la-}
 {-        sb = S.fromList $ getMediumNonEmpty lb-}
-{-        costA = cost (dtwMemo sqDist sa sb)-}
-{-        costB = cost (fastDtw sqDist 10 sa sb)-}
+{-        costA = cost (dtwMemo dist sa sb)-}
+{-        costB = cost (fastDtw dist 10 sa sb)-}
 {-        matSize = fromIntegral $ S.length sa * S.length sb-}
 
 main :: IO ()
