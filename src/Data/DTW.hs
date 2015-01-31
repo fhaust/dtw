@@ -1,8 +1,44 @@
 
-
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE TypeFamilies #-}
+
+-- | This module implements dynamic time warping as described here:
+-- http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828
+--
+-- Additionally 'fastDtw' is implemented as described in the paper:
+-- "FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and
+-- Space" by Stan Salvador and Philip Chan.
+--
+-- Please note that 'fastDtw' is only an approximative solution. If you
+-- need the optimal solution and can bear with the heavily increased demand
+-- both in cpu and in memory you should use 'dtwMemo' or 'dtwMemoWindowed'.
+--
+--
+-- == Example
+--
+-- >>> -- create two sample datasets
+-- >>> let as = [ sin x | x <- [0,0.1..pi] ]
+-- >>> let bs = [ sin (x+0.1) | x <- [0,0.1..pi] ]
+-- >>> -- define a cost function between two datapoints
+-- >>> let dist x y = abs (x-y)
+-- >>> -- define a function that will half the size of a dataset (see below)
+-- >>> let shrink xs = case xs of (a:b:cs) -> (a+b)/2 : shrink cs; a:[] -> [a]; [] -> []
+-- >>> -- calculate the cost with fastDtw and dtwMemo for comparison
+-- >>> cost $ fastDtw dist shrink 2 as bs :: Float
+-- 0.19879311
+-- >>> cost $ dtwMemo (\x y -> abs (x-y)) as bs :: Float
+-- 0.19879311
+--
+-- == Some words on the shrink function
+--
+-- Care must be taken when choosing a shrink function. It's vital that the
+-- resolution is halfed, this is not exactly a problem with the algorithm
+-- but with the implementation. The lower resolution dataset should be an
+-- honest representation of the higher resolution dataset. For starters
+-- binning as in the example above should suffice.
+-- 
+
 
 module Data.DTW (dtwNaive, dtwMemo, fastDtw, Result(..), Path, Index) where
 
@@ -103,12 +139,12 @@ dtwMemoWindowed δ inWindow as bs = go (len as - 1) (len bs - 1)
 
 -------------------------------------------------------------------------------------
 
--- | reduce a dataset to half its size by averaging neighbour values
--- together
-reduceByHalf :: Fractional a => Seq a -> Seq a
-reduceByHalf (S.viewl -> x :< (S.viewl -> y :< xs))  = (x + y) / 2 <| reduceByHalf xs
-reduceByHalf (S.viewl -> x :< (S.viewl -> S.EmptyL)) = S.singleton x
-reduceByHalf _                                       = S.empty
+{--- | reduce a dataset to half its size by averaging neighbour values-}
+{--- together-}
+{-reduceByHalf :: Fractional a => Seq a -> Seq a-}
+{-reduceByHalf (S.viewl -> x :< (S.viewl -> y :< xs))  = (x + y) / 2 <| reduceByHalf xs-}
+{-reduceByHalf (S.viewl -> x :< (S.viewl -> S.EmptyL)) = S.singleton x-}
+{-reduceByHalf _                                       = S.empty-}
 
 -- | create a search window by projecting the path from a lower resolution
 -- to the next level as defined in the fastdtw paper (figure 6), ie:
@@ -152,14 +188,19 @@ expandWindow r = Set.fromList . concatMap (\(x,y) -> [ (x',y') | y' <- [y-r..y+r
 -- result in O(N), depending on the usecase the windowsize should be
 -- tweaked
 
-fastDtw :: (Fractional a, Fractional b, Ord c, Fractional c)
-        => (a -> b -> c) -> Int -> Seq a -> Seq b -> Result c
-fastDtw δ r as bs | S.length as <= minTSsize || S.length bs <= minTSsize = dtwMemo δ as bs
-                  | otherwise = dtwMemoWindowed δ inWindow as bs
+fastDtw :: (Ord c, Fractional c, DataSet a)
+        => (Item a -> Item a -> c)
+        -> (a -> a) -- ^ function that shrinks a dataset by a factor of two
+        -> Int      -- ^ radius that the search window is expanded at each resolution level
+        -> a        -- ^ first dataset
+        -> a        -- ^ second dataset
+        -> Result c -- ^ result
+fastDtw δ shrink r as bs | len as <= minTSsize || len bs <= minTSsize = dtwMemo δ as bs
+                         | otherwise = dtwMemoWindowed δ inWindow as bs
     where minTSsize    = r+2
-          shrunkAS     = reduceByHalf as
-          shrunkBS     = reduceByHalf bs
-          lowResResult = fastDtw δ r shrunkAS shrunkBS
+          shrunkAS     = shrink as
+          shrunkBS     = shrink bs
+          lowResResult = fastDtw δ shrink r shrunkAS shrunkBS
           window       = expandWindow r $ projectPath (path lowResResult)
           inWindow x y = (x,y) `Set.member` window
 

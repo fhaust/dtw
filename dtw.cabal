@@ -3,8 +3,9 @@
 
 name:                dtw
 version:             0.1.0.0
--- synopsis:            
--- description:         
+synopsis:            (Fast) Dynamic Time Warping
+description:         This package implements dynamic time warping as described
+                     here http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828
 license:             MIT
 license-file:        LICENSE
 author:              Florian Hofmann
