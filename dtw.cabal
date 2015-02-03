@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                dtw
-version:             0.9.0.0
+version:             0.9.1.0
 synopsis:            (Fast) Dynamic Time Warping
 description:         This package implements dynamic time warping as described
                      here http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828
