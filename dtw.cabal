@@ -19,6 +19,7 @@ cabal-version:       >=1.10
 
 library
   build-depends:       base >= 4.7 && < 4.8,
+                       vector,
                        vector-space,
                        containers,
                        MemoTrie
@@ -32,6 +33,7 @@ test-suite maintest
   hs-source-dirs:      src,test
   main-is:             MainTest.hs
   build-depends:       base,
+                       vector,
                        vector-space,
                        thyme,
                        containers,

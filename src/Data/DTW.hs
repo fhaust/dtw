@@ -1,7 +1,8 @@
 
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module implements dynamic time warping as described here:
 -- http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828
@@ -48,6 +49,7 @@ import qualified Data.Sequence as S
 
 import qualified Data.Set as Set
 import qualified Data.List as L
+import qualified Data.Vector.Generic as V
 
 import           Data.MemoTrie
 import           Data.Function
@@ -71,6 +73,11 @@ instance DataSet [a] where
     type Item [a] = a
     ix  = (!!)
     len = length
+
+instance V.Vector v a => DataSet (v a) where
+    type Item (v a) = a
+    ix  = V.unsafeIndex -- for speed?
+    len = V.length
 
 -- common types
 
