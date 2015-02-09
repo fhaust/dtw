@@ -1,8 +1,6 @@
 
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module implements dynamic time warping as described here:
 -- http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828
@@ -41,15 +39,16 @@
 -- 
 
 
-module Data.DTW (dtwNaive, dtwMemo, fastDtw, Result(..), Path, Index) where
+module Data.DTW (dtwNaive, dtwMemo, fastDtw, DataSet(..), Result(..), Path, Index) where
 
 
-import           Data.Sequence (Seq, ViewL (..), (<|))
 import qualified Data.Sequence as S
 
 import qualified Data.Set as Set
 import qualified Data.List as L
-import qualified Data.Vector.Generic as V
+import qualified Data.Vector as V
+import qualified Data.Vector.Unboxed as UV
+import qualified Data.Vector.Storable as SV
 
 import           Data.MemoTrie
 import           Data.Function
@@ -74,10 +73,20 @@ instance DataSet [a] where
     ix  = (!!)
     len = length
 
-instance V.Vector v a => DataSet (v a) where
-    type Item (v a) = a
+instance DataSet (V.Vector a) where
+    type Item (V.Vector a) = a
     ix  = V.unsafeIndex -- for speed?
     len = V.length
+
+instance UV.Unbox a => DataSet (UV.Vector a) where
+    type Item (UV.Vector a) = a
+    ix  = UV.unsafeIndex -- for speed?
+    len = UV.length
+
+instance SV.Storable a => DataSet (SV.Vector a) where
+    type Item (SV.Vector a) = a
+    ix  = SV.unsafeIndex -- for speed?
+    len = SV.length
 
 -- common types
 
