@@ -1,6 +1,7 @@
 
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE RankNTypes #-}
 
 -- | This module implements dynamic time warping as described here:
 -- http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828
