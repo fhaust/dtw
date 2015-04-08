@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/fhaust/dtw.svg)](https://travis-ci.org/fhaust/dtw)
 
 This module implements dynamic time warping as described on [Wikipedia](http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828)
 
