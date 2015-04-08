@@ -39,7 +39,7 @@ test-suite maintest
                        containers,
                        test-framework,
                        test-framework-quickcheck2,
-                       QuickCheck,
+                       QuickCheck <2.8,
                        MemoTrie
   ghc-options:         -O2 -Wall -fllvm
   hs-source-dirs:      src
