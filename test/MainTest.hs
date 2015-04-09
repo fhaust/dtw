@@ -53,9 +53,11 @@ testDTWMemoVSDTWNaive (la,lb) = abs (dtwNaive dist sa sb - cost (dtwMemo dist sa
         sb = S.fromList $ getSmallNonEmpty lb
 
 testFastDTWvsDTWNaive :: (SmallNonEmptySeq Double, SmallNonEmptySeq Double) -> Bool
-testFastDTWvsDTWNaive (la,lb) = abs (dtwNaive dist sa sb - cost (fastDtw dist reduceByHalf 2 sa sb)) < 0.01
+testFastDTWvsDTWNaive (la,lb) = abs (1 - ca / cb) < 0.001
   where sa = S.fromList $ getSmallNonEmpty la
         sb = S.fromList $ getSmallNonEmpty lb
+        ca = dtwNaive dist sa sb
+        cb = cost $ fastDtw dist reduceByHalf 2 sa sb
 
 -- FIXME no real idea how to compare an optimal and an approximative
 -- algorithm ... best bet below, but still failing tests
@@ -69,7 +71,7 @@ testFastDTWvsDTWNaive (la,lb) = abs (dtwNaive dist sa sb - cost (fastDtw dist re
 
 main :: IO ()
 main = defaultMain 
-     [ testProperty "dtwMemo == dtwNaive" testDTWMemoVSDTWNaive
-     , testProperty "fastDtw == dtwNaive" testFastDTWvsDTWNaive
+     [ testProperty "dtwMemo ≡ dtwNaive" testDTWMemoVSDTWNaive
+     , testProperty "fastDtw ≅ dtwNaive" testFastDTWvsDTWNaive
      {-, testProperty "fastDtw == dtwMemo"  testFastDTWvsDTWMemo-}
      ]
