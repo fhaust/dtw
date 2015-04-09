@@ -53,9 +53,10 @@ testDTWMemoVSDTWNaive (la,lb) = abs (dtwNaive dist sa sb - cost (dtwMemo dist sa
         sb = S.fromList $ getSmallNonEmpty lb
 
 testFastDTWvsDTWNaive :: (SmallNonEmptySeq Double, SmallNonEmptySeq Double) -> Bool
-testFastDTWvsDTWNaive (la,lb) = abs (1 - ca / cb) < 0.001
+testFastDTWvsDTWNaive (la,lb) = abs (1 - (ca/l) / (cb/l)) < 0.1
   where sa = S.fromList $ getSmallNonEmpty la
         sb = S.fromList $ getSmallNonEmpty lb
+        l  = fromIntegral $ S.length sa + S.length sb
         ca = dtwNaive dist sa sb
         cb = cost $ fastDtw dist reduceByHalf 2 sa sb
 
