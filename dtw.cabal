@@ -2,10 +2,10 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                dtw
-version:             0.9.2.0
+version:             1.0.0.0
 synopsis:            (Fast) Dynamic Time Warping
 description:         This package implements dynamic time warping as described
-                     here http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping&oldid=643501828
+                     here <http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping>
 license:             MIT
 license-file:        LICENSE
 author:              Florian Hofmann
@@ -48,14 +48,3 @@ test-suite maintest
   ghc-options:         -O2 -Wall
   hs-source-dirs:      src
   default-language:    Haskell2010
-
---executable glossaer
---  main-is:             GlossAER.hs
---  -- other-modules:       
---  -- other-extensions:    
---  build-depends:       base >=4.7 && <4.8,
---                       aer,
---                       kdtree
---  ghc-options:         -O2 -Wall -fexcess-precision
---  hs-source-dirs:      src
---  default-language:    Haskell2010
