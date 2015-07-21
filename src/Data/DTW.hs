@@ -48,7 +48,6 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as UV
 import qualified Data.Vector.Storable as SV
 
-import           Data.MemoTrie
 import           Data.Function
 
 
@@ -132,7 +131,7 @@ dtwMemoWindowed :: (Ord c, Fractional c, DataSet a, DataSet b)
 dtwMemoWindowed δ inWindow as bs = go (len as - 1) (len bs - 1)
     where -- wrap go' in a memoziation function so that each value
           -- is calculated only once
-          go = memo2 go'
+          go = vecMemo2 (len as) (len bs) go'
           -- handle special cases, origin cost is zero,
           -- border cost is infinity
           go' 0 0                      = Result 0 [(0,0)]
@@ -150,6 +149,10 @@ dtwMemoWindowed δ inWindow as bs = go (len as - 1) (len bs - 1)
                   newCost   = δ (ix as x) (ix bs y) + cost minResult
 
 {-# INLINABLE dtwMemoWindowed #-}
+
+vecMemo2 :: Int -> Int -> (Int -> Int -> a) -> Int -> Int -> a
+vecMemo2 w h f = \x y -> v V.! (x + y*w)
+    where v = V.generate (w*h) (\i -> let (y,x) = i `divMod` w in f x y)
 
 -------------------------------------------------------------------------------------
 
