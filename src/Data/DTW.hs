@@ -101,14 +101,14 @@ data Result a = Result { cost :: {-# UNPACK #-} !a, path :: Path } deriving (Sho
 
 dtwNaive :: (Ord c, Fractional c, DataSet a, DataSet b)
          => (Item a -> Item b -> c) -> a -> b -> c
-dtwNaive δ as bs = go (len as - 1) (len bs - 1)
+dtwNaive δ as bs = go (len as) (len bs)
     where go 0 0 = 0
           go _ 0 = 1/0
           go 0 _ = 1/0
-          go x y = δ (ix as x) (ix bs y) + minimum [ go (x-1)  y
-                                                   , go  x    (y-1)
-                                                   , go (x-1) (y-1)
-                                                   ]
+          go x y = δ (ix as (x-1)) (ix bs (y-1)) + minimum [ go (x-1)  y
+                                                           , go  x    (y-1)
+                                                           , go (x-1) (y-1)
+                                                           ]
 
 -------------------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ dtwMemoWindowed :: (Ord c, Fractional c, DataSet a, DataSet b)
                 -> a
                 -> b
                 -> Result c
-dtwMemoWindowed δ inWindow as bs = go (len as - 1) (len bs - 1)
+dtwMemoWindowed δ inWindow as bs = go (len as) (len bs)
     where -- wrap go' in a memoziation function so that each value
           -- is calculated only once
           go = vecMemo2 (len as) (len bs) go'
@@ -146,13 +146,13 @@ dtwMemoWindowed δ inWindow as bs = go (len as - 1) (len bs - 1)
                                                               , go  x    (y-1)
                                                               , go (x-1) (y-1) ]
                   newPath   = (x,y) : path minResult
-                  newCost   = δ (ix as x) (ix bs y) + cost minResult
+                  newCost   = δ (ix as (x-1)) (ix bs (y-1)) + cost minResult
 
 {-# INLINABLE dtwMemoWindowed #-}
 
 vecMemo2 :: Int -> Int -> (Int -> Int -> a) -> Int -> Int -> a
-vecMemo2 w h f = \x y -> v V.! (x + y*w)
-    where v = V.generate (w*h) (\i -> let (y,x) = i `divMod` w in f x y)
+vecMemo2 w h f = \x y -> v V.! (x + y*(w+1))
+    where v = V.generate ((w+1)*(h+1)) (\i -> let (y,x) = i `divMod` (w+1) in f x y)
 
 -------------------------------------------------------------------------------------
 
