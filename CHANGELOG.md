@@ -1,5 +1,8 @@
 
 
+### 1.0.2.0 
+
+* There was a zero indexing bug that was discovered by *Marcus Dean Gabriel*.
 
 ### 1.0.1.0 
 
