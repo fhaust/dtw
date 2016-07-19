@@ -70,9 +70,22 @@ testFastDTWvsDTWNaive (la,lb) = abs (1 - (ca/l) / (cb/l)) < 0.1
 {-        costB = cost (fastDtw dist 10 sa sb)-}
 {-        matSize = fromIntegral $ S.length sa * S.length sb-}
 
+testNaiveSingleElements :: (Double,Double) -> Bool
+testNaiveSingleElements (a,b) = abs (ca - cb) < 0.0001
+    where ca = dist a b
+          cb = dtwNaive dist [a] [b]
+
+testFastSingleElements :: (Double,Double) -> Bool
+testFastSingleElements (a,b) = abs (ca - cb) < 0.0001
+    where ca = dist a b
+          cb = cost $ fastDtw dist reduceByHalf 2 (S.singleton a) (S.singleton b)
+
+
 main :: IO ()
 main = defaultMain 
      [ testProperty "dtwMemo ≡ dtwNaive" testDTWMemoVSDTWNaive
      , testProperty "fastDtw ≅ dtwNaive" testFastDTWvsDTWNaive
      {-, testProperty "fastDtw == dtwMemo"  testFastDTWvsDTWMemo-}
+     , testProperty "single element dtwNaive" testNaiveSingleElements
+     , testProperty "single element dtwFast" testFastSingleElements
      ]
