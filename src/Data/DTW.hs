@@ -64,26 +64,37 @@ instance DataSet (S.Seq a) where
     type Item (S.Seq a) = a
     ix  = S.index
     len = S.length
+    {-# INLINABLE ix #-}
+    {-# INLINABLE len #-}
 
 instance DataSet [a] where
     type Item [a] = a
     ix  = (!!)
     len = length
+    {-# INLINABLE ix #-}
+    {-# INLINABLE len #-}
 
 instance DataSet (V.Vector a) where
     type Item (V.Vector a) = a
     ix  = V.unsafeIndex -- for speed?
     len = V.length
+    {-# INLINABLE ix #-}
+    {-# INLINABLE len #-}
 
 instance UV.Unbox a => DataSet (UV.Vector a) where
     type Item (UV.Vector a) = a
     ix  = UV.unsafeIndex -- for speed?
     len = UV.length
+    {-# INLINABLE ix #-}
+    {-# INLINABLE len #-}
 
 instance SV.Storable a => DataSet (SV.Vector a) where
     type Item (SV.Vector a) = a
     ix  = SV.unsafeIndex -- for speed?
     len = SV.length
+    {-# INLINABLE ix #-}
+    {-# INLINABLE len #-}
+
 
 -- common types
 
@@ -154,6 +165,8 @@ vecMemo2 :: Int -> Int -> (Int -> Int -> a) -> Int -> Int -> a
 vecMemo2 w h f = \x y -> v V.! (x + y*w)
     where v = V.generate (w*h) (\i -> let (y,x) = i `divMod` w in f x y)
 
+{-# INLINABLE vecMemo2 #-}
+
 -------------------------------------------------------------------------------------
 
 {--- | reduce a dataset to half its size by averaging neighbour values-}
@@ -180,6 +193,8 @@ projectPath p = Set.fromList $ concatMap expand $ concat $ zipWith project p (ta
   where project (a,b) (c,d) = [(2*a,2*b),((2*a+2*c) `quot` 2, (2*b+2*d) `quot` 2), (2*c,2*d)]
         expand  (a,b)       = [(a,b),(a+1,b),(a,b+1),(a+1,b+1)]
 
+{-# INLINABLE projectPath #-}
+
 -- | expand the search window by a given radius
 -- (compare fastdtw paper figure 6)
 -- ie for a radius of 1:
@@ -198,7 +213,7 @@ projectPath p = Set.fromList $ concatMap expand $ concat $ zipWith project p (ta
 expandWindow :: Int -> Window -> Window
 expandWindow r = Set.fromList . concatMap (\(x,y) -> [ (x',y') | y' <- [y-r..y+r], x' <- [x-r..x+r] ]) . Set.toList
 
-
+{-# INLINABLE expandWindow #-}
 
 -- | this is the "fast" implementation of dynamic time warping
 -- as per the authors this methods calculates a good approximate
@@ -212,13 +227,14 @@ fastDtw :: (Ord c, Fractional c, DataSet a)
         -> a        -- ^ first dataset
         -> a        -- ^ second dataset
         -> Result c -- ^ result
-fastDtw δ shrink r as bs | len as <= minTSsize || len bs <= minTSsize = dtwMemo δ as bs
-                         | otherwise = dtwMemoWindowed δ inWindow as bs
-    where minTSsize    = r+2
-          shrunkAS     = shrink as
-          shrunkBS     = shrink bs
-          lowResResult = fastDtw δ shrink r shrunkAS shrunkBS
-          window       = expandWindow r $ projectPath (path lowResResult)
-          inWindow x y = (x,y) `Set.member` window
-
+fastDtw δ shrink r = go 
+    where go as bs | len as <= minTSsize || len bs <= minTSsize = dtwMemo δ as bs
+                   | otherwise = dtwMemoWindowed δ inWindow as bs
+             where minTSsize    = r+2
+                   shrunkAS     = shrink as
+                   shrunkBS     = shrink bs
+                   lowResResult = fastDtw δ shrink r shrunkAS shrunkBS
+                   window       = expandWindow r $ projectPath (path lowResResult)
+                   inWindow x y = (x,y) `Set.member` window
+  
 {-# INLINABLE fastDtw #-}
