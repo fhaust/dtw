@@ -42,7 +42,7 @@ test-suite maintest
                        containers,
                        test-framework,
                        test-framework-quickcheck2,
-                       QuickCheck
+                       QuickCheck <2.8
   ghc-options:         -O2 -Wall
   ghc-prof-options:    -fprof-auto -auto-all -caf-all -rtsopts
   hs-source-dirs:      src
