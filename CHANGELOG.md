@@ -1,4 +1,8 @@
 
+### 1.0.3.0 
+
+* Reverted Marcus' patch.
+* Heuristic testing of `dtwMemo` against `fastDTW` is kind of working now.
 
 ### 1.0.2.0 
 

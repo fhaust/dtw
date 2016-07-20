@@ -8,6 +8,8 @@ module Main where
 -- module under test
 import Data.DTW
 
+import Data.List
+
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 
@@ -18,6 +20,7 @@ import qualified Data.Sequence as S
 
 import Data.Functor
 
+import Debug.Trace
 
 newtype SmallNonEmptySeq a = SmallNonEmptySeq { getSmallNonEmpty :: [a] }
     deriving (Show, Eq)
@@ -62,17 +65,24 @@ testFastDTWvsDTWNaive (la,lb) = abs (1 - (ca/l) / (cb/l)) < 0.1
 
 -- FIXME no real idea how to compare an optimal and an approximative
 -- algorithm ... best bet below, but still failing tests
-{-testFastDTWvsDTWMemo :: (MediumNonEmptySeq Double, MediumNonEmptySeq Double) -> Bool-}
-{-testFastDTWvsDTWMemo (la,lb) = abs (1 - ((costA / matSize) / (costB / matSize))) < 0.1-}
-{-  where sa = S.fromList $ getMediumNonEmpty la-}
-{-        sb = S.fromList $ getMediumNonEmpty lb-}
-{-        costA = cost (dtwMemo dist sa sb)-}
-{-        costB = cost (fastDtw dist 10 sa sb)-}
-{-        matSize = fromIntegral $ S.length sa * S.length sb-}
+testFastDTWvsDTWMemoErr :: Int -> (MediumNonEmptySeq Double, MediumNonEmptySeq Double) -> Double
+testFastDTWvsDTWMemoErr radius (la,lb) = err
+  where sa      = S.fromList $ getMediumNonEmpty la
+        sb      = S.fromList $ getMediumNonEmpty lb
+        optimal = cost (dtwMemo dist sa sb)
+        approx  = cost (fastDtw dist reduceByHalf radius sa sb)
+        err     = (approx - optimal) / optimal * 100
+
+testFastDTWvsDTWMemo :: Int -> Double -> Property
+testFastDTWvsDTWMemo radius goal = forAll (vector 25) go
+    where go xs = median < goal
+            where errs = map (testFastDTWvsDTWMemoErr radius) xs
+                  mean = sum errs / fromIntegral (length errs)
+                  median = sort errs !! (length errs `div` 2)
 
 main :: IO ()
 main = defaultMain 
      [ testProperty "dtwMemo ≡ dtwNaive" testDTWMemoVSDTWNaive
-     , testProperty "fastDtw ≅ dtwNaive" testFastDTWvsDTWNaive
-     {-, testProperty "fastDtw == dtwMemo"  testFastDTWvsDTWMemo-}
+     {-, testProperty "fastDtw ≅ dtwNaive" testFastDTWvsDTWNaive-}
+     , testProperty "fastDtw == dtwMemo (radius=5, maxError=5%)" (testFastDTWvsDTWMemo 5 5)
      ]
