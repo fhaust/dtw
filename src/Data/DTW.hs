@@ -91,7 +91,7 @@ type Index  = (Int,Int)
 type Path   = [Index]
 type Window = Set.Set Index
 
-data Result a = Result { cost :: {-# UNPACK #-} !a, path :: Path } deriving (Show,Read,Eq)
+data Result a = Result { cost :: !a, path :: !Path } deriving (Show,Read,Eq)
 
 
 -- | this is the naive implementation of dynamic time warping
