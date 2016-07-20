@@ -233,7 +233,7 @@ fastDtw δ shrink r = go
              where minTSsize    = r+2
                    shrunkAS     = shrink as
                    shrunkBS     = shrink bs
-                   lowResResult = fastDtw δ shrink r shrunkAS shrunkBS
+                   lowResResult = go shrunkAS shrunkBS
                    window       = expandWindow r $ projectPath (path lowResResult)
                    inWindow x y = (x,y) `Set.member` window
   
