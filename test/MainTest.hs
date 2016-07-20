@@ -17,17 +17,17 @@ import qualified Data.Vector.Unboxed as V
 
 import Debug.Trace
 
-newtype SmallNonEmptySeq a = SmallNonEmptySeq { getSmallNonEmpty :: [a] }
+newtype SmallNonEmptySeq a = SmallNonEmptySeq { getSmallNonEmpty :: V.Vector a }
     deriving (Show, Eq)
 
-instance Arbitrary a => Arbitrary (SmallNonEmptySeq a) where
-    arbitrary = SmallNonEmptySeq <$> listOf arbitrary `suchThat` (\l -> length l > 2 && length l < 10)
+instance (V.Unbox a, Arbitrary a) => Arbitrary (SmallNonEmptySeq a) where
+    arbitrary = SmallNonEmptySeq . V.fromList <$> listOf arbitrary `suchThat` (\l -> length l > 2 && length l < 10)
 
-newtype MediumNonEmptySeq a = MediumNonEmptySeq { getMediumNonEmpty :: [a] }
+newtype MediumNonEmptySeq a = MediumNonEmptySeq { getMediumNonEmpty :: V.Vector a }
     deriving (Show, Eq)
 
-instance Arbitrary a => Arbitrary (MediumNonEmptySeq a) where
-    arbitrary = MediumNonEmptySeq <$> listOf arbitrary `suchThat` (\l -> length l > 100 && length l < 1000)
+instance (V.Unbox a, Arbitrary a) => Arbitrary (MediumNonEmptySeq a) where
+    arbitrary = MediumNonEmptySeq . V.fromList <$> listOf arbitrary `suchThat` (\l -> length l > 100 && length l < 1000)
 
 
 dist :: Double -> Double -> Double
@@ -49,13 +49,13 @@ reduceByHalf v | V.null v        = V.empty
 
 testDTWMemoVSDTWNaive :: (SmallNonEmptySeq Double, SmallNonEmptySeq Double) -> Bool
 testDTWMemoVSDTWNaive (la,lb) = abs (dtwNaive dist sa sb - cost (dtwMemo dist sa sb)) < 0.01
-  where sa = V.fromList $ getSmallNonEmpty la
-        sb = V.fromList $ getSmallNonEmpty lb
+  where sa = getSmallNonEmpty la
+        sb = getSmallNonEmpty lb
 
 testFastDTWvsDTWNaive :: (SmallNonEmptySeq Double, SmallNonEmptySeq Double) -> Bool
 testFastDTWvsDTWNaive (la,lb) = abs (1 - (ca/l) / (cb/l)) < 0.1
-  where sa = V.fromList $ getSmallNonEmpty la
-        sb = V.fromList $ getSmallNonEmpty lb
+  where sa = getSmallNonEmpty la
+        sb = getSmallNonEmpty lb
         l  = fromIntegral $ V.length sa + V.length sb
         ca = dtwNaive dist sa sb
         cb = cost $ fastDtw dist reduceByHalf 2 sa sb
@@ -64,8 +64,8 @@ testFastDTWvsDTWNaive (la,lb) = abs (1 - (ca/l) / (cb/l)) < 0.1
 -- algorithm ... best bet below, but still failing tests
 testFastDTWvsDTWMemoErr :: Int -> (MediumNonEmptySeq Double, MediumNonEmptySeq Double) -> Double
 testFastDTWvsDTWMemoErr radius (la,lb) = err
-  where sa      = V.fromList $ getMediumNonEmpty la
-        sb      = V.fromList $ getMediumNonEmpty lb
+  where sa      = getMediumNonEmpty la
+        sb      = getMediumNonEmpty lb
         optimal = cost (dtwMemo dist sa sb)
         approx  = cost (fastDtw dist reduceByHalf radius sa sb)
         err     = (approx - optimal) / optimal * 100
