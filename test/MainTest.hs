@@ -8,14 +8,14 @@ import Data.DTW
 
 import Data.List
 
+import Data.Functor
+
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 
 import Test.QuickCheck
 
 import qualified Data.Vector.Unboxed as V
-
-import Debug.Trace
 
 newtype SmallNonEmptySeq a = SmallNonEmptySeq { getSmallNonEmpty :: V.Vector a }
     deriving (Show, Eq)
@@ -74,7 +74,7 @@ testFastDTWvsDTWMemo :: Int -> Double -> Property
 testFastDTWvsDTWMemo radius goal = forAll (vector 25) go
     where go xs = median < goal
             where errs = map (testFastDTWvsDTWMemoErr radius) xs
-                  median = traceShowId $ sort errs !! (length errs `div` 2)
+                  median = sort errs !! (length errs `div` 2)
 
 main :: IO ()
 main = defaultMain 
