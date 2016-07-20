@@ -15,12 +15,8 @@ import Test.Framework.Providers.QuickCheck2
 
 import Test.QuickCheck
 
-import           Data.Sequence (Seq(..), ViewL(..), (<|))
+import           Data.Sequence (Seq, ViewL(..), (<|))
 import qualified Data.Sequence as S
-
-import Data.Functor
-
-import Debug.Trace
 
 newtype SmallNonEmptySeq a = SmallNonEmptySeq { getSmallNonEmpty :: [a] }
     deriving (Show, Eq)
@@ -77,7 +73,6 @@ testFastDTWvsDTWMemo :: Int -> Double -> Property
 testFastDTWvsDTWMemo radius goal = forAll (vector 25) go
     where go xs = median < goal
             where errs = map (testFastDTWvsDTWMemoErr radius) xs
-                  mean = sum errs / fromIntegral (length errs)
                   median = sort errs !! (length errs `div` 2)
 
 main :: IO ()
