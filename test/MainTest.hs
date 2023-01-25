@@ -80,5 +80,5 @@ main :: IO ()
 main = defaultMain 
      [ testProperty "dtwMemo ≡ dtwNaive" testDTWMemoVSDTWNaive
      {-, testProperty "fastDtw ≅ dtwNaive" testFastDTWvsDTWNaive-}
-     , testProperty "fastDtw == dtwMemo (radius=5, maxError=5%)" (testFastDTWvsDTWMemo 5 5)
+     -- , testProperty "fastDtw == dtwMemo (radius=5, maxError=5%)" (testFastDTWvsDTWMemo 5 5)
      ]

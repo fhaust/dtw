@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                dtw
-version:             1.0.3.0
+version:             1.0.3.1
 synopsis:            (Fast) Dynamic Time Warping
 description:         This package implements dynamic time warping as described
                      here <http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping>
@@ -15,6 +15,17 @@ category:            Algorithms, Data mining, Machine learning
 build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
+tested-with:
+   GHC ==8.0.2
+    || ==8.2.2
+    || ==8.4.4
+    || ==8.6.5
+    || ==8.8.4
+    || ==8.10.7
+    || ==9.0.2
+    || ==9.2.5
+    || ==9.4.4
+
 
 source-repository head
   type:                git
@@ -22,10 +33,10 @@ source-repository head
 
 
 library
-  build-depends:       base         >= 4.6 && < 4.10,
-                       vector       >= 0.10 && < 0.12,
-                       vector-space >= 0.9 && < 0.11,
-                       containers   >= 0.5 && < 0.6
+  build-depends:       base         >= 4.6 && < 4.17,
+                       vector       >= 0.10 && < 0.13,
+                       vector-space >= 0.9 && < 0.17,
+                       containers   >= 0.5 && < 0.7
   exposed-modules:     Data.DTW
   ghc-options:         -Wall
   hs-source-dirs:      src
@@ -38,7 +49,6 @@ test-suite maintest
   build-depends:       base,
                        vector,
                        vector-space,
-                       thyme,
                        containers,
                        test-framework,
                        test-framework-quickcheck2,
