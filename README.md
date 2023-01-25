@@ -1,4 +1,9 @@
-[![Build Status](https://travis-ci.org/fhaust/dtw.svg)](https://travis-ci.org/fhaust/dtw)
+
+[![dtw on Hackage](https://img.shields.io/hackage/v/dtw.svg)](https://hackage.haskell.org/package/dtw)
+[![dtw on latest Stackage LTS](http://stackage.org/package/dtw/badge/lts)](http://stackage.org/lts/package/dtw)
+[![dtw on Stackage Nightly](http://stackage.org/package/dtw/badge/nightly)](http://stackage.org/nightly/package/dtw)
+[![dtw on Haskell-CI](https://github.com/fhaust/dtw/actions/workflows/haskell-ci.yml/badge.svg)](https://github.com/fhaust/dtw/actions/workflows/haskell-ci.yml)
+
 
 This module implements dynamic time warping as described on [Wikipedia](http://en.wikipedia.org/w/index.php?title=Dynamic_time_warping)
 
